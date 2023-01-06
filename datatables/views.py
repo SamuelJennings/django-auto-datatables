@@ -6,7 +6,6 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from .renderers import DatatablesORJSONRenderer
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework_datatables_editor import pagination, filters
-from rest_framework.response import Response
 from .metadata import DatatablesAutoMetadata
 
 
@@ -110,3 +109,7 @@ class DatatablesMixin(Endpoint):
 
 class DatatablesReadOnlyView(DatatablesMixin, TemplateView):
     template_name = 'datatables/table.html'
+
+    @classmethod
+    def as_view(cls, actions=None, **initkwargs):
+        return super().as_view(**initkwargs)
