@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="w-100 auto-table-wrapper {% if endpoint.row_template_name %}templated{% endif %}">
+  <table class='datatable table table-responsive table-striped mb-0' data-ajax="{% url endpoint.get_api_endpoint %}">
+    <thead>
+      <tr>
+        {% for f in endpoint.get_datatables_columns %}
+          <th {% for k, v in f.items %}{% if k != "title" %}
+            data-{{ k }}= "{{ v }}"
+            {% endif %}{% endfor %}>
+            {{ f.title|capfirst }}
+          </th>
+        {% endfor %} 
+      </tr>
+    </thead>
+  </table>
+  <div class='container'>
+    <div id="template-container" class="grid">
+      <div class="grid-item">...</div>
+      <div class="grid-item grid-item--width2">...</div>
+      <div class="grid-item">...</div>
+    </div>
+  </div>
+</div> 
+
+<div class='page-footer'></div>
+
+{% if endpoint.row_template_name %}
+<div id='template' style="display: none;">
+{% include endpoint.row_template_name %}
+</div>
+{% endif %}
+
+{{ endpoint.get_datatable_config|json_script:"datatables-config" }}
+
+
+{% endblock content %}
+
+{% block scripts %}
+
+
+<script>
+  $(document).ready(function() {
+    $('.datatable').AutoTable({{ table_options|safe }});
+  })
+</script>
+{% endblock scripts %}
+

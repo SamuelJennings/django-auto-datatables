@@ -13,7 +13,7 @@
 <!-- ![PyPI - Downloads](https://img.shields.io/pypi/dm/django-auto-datatables) -->
 <!-- ![PyPI - Status](https://img.shields.io/pypi/status/django-auto-datatables) -->
 
-A Django application for managing collections of scientific instruments
+A scientific auto-datatables management app for Django
 
 Documentation
 -------------

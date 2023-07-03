@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+python manage.py migrate
+exec python manage.py runserver 0.0.0.0:8000
+
+# it would be nice to run the app with runserver_plus but there appears to be issues with
+# monitoring file chances when mounting a directory using docker
+# exec python manage.py runserver_plus 0.0.0.0:8000
+
