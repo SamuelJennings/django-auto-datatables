@@ -1,15 +1,23 @@
 $.fn.extend({
   AutoTable: function (config) {
+    const wrapper = $('.auto-table-wrapper')
     const templateContainer = $('#template-container')
-    const djangoConfig = JSON.parse(document.getElementById('datatables-config').textContent)
-    // var extraConfig = {}
+    const djangoConfig = JSON.parse($('#datatables-config').text())
+    const layoutConfig = JSON.parse($('#layout-config').text())
+    const options = fetch(this.data('ajax'), {
+      method: 'OPTIONS',
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+      return data
+    })
     if ($("#template")) {
       extraConfig = {
           initComplete: function(settings, json) {
             // show new container for data
-            templateContainer.insertBefore('#example');
+            templateContainer.insertBefore('#template-container');
             templateContainer.show();
-            $('#DataTables_Table_0_info').appendTo($('#appFooter'))
           },
           rowCallback: function( row, data ) {
               // on each row callback
@@ -24,15 +32,22 @@ $.fn.extend({
               // clear list before draw
               templateContainer.empty();
           },
-
-
       }
     }
+
+    console.log(djangoConfig)
+
 
     return $(this).DataTable( {
       ...djangoConfig,
       ...config,
       ...extraConfig,
+      initComplete: function(settings, json) {
+        wrapper.addClass('loaded')
+        $.each( layoutConfig, function( key, value ) {
+          $(key).appendTo($(value))
+        });
+      },
      } );
   }
 });

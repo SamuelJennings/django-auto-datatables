@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from auto_datatables.mixins import AjaxMixin
-from auto_datatables.views import BaseDataTable
+from auto_datatables.tables import BaseDataTable
 
 User = get_user_model()
 fields = [

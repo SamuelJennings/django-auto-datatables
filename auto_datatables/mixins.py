@@ -1,6 +1,7 @@
 class AjaxMixin:
     deferRender = True
     pagination_class = None
+    # page_size = None
 
 
 class ServerSideMixin:
@@ -11,7 +12,7 @@ class ServerSideMixin:
 class ScrollerMixin(ServerSideMixin):
     page_size = 100
     scrollY = "100vh"
-    scroller = {"loadingIndicator": True}
+    scroller = True
 
 
 class EditorMixin:

@@ -1,12 +1,5 @@
-{% extends 'base.html' %}
 {% load static %}
 
-{% block css %}
-<link rel="stylesheet" href="{% static "auto_datatables/css/auto-datatable.css" %}">
-{% endblock %}
-
-
-{% block content %}
 <div class="auto-table-wrapper {% if endpoint.row_template_name %}templated{% endif %}">
   <table class='datatable' data-ajax="{% url endpoint.get_api_endpoint %}">
     <thead>
@@ -14,9 +7,7 @@
         {% for f in endpoint.get_datatables_columns %}
           <th {% for k, v in f.items %}{% if k != "title" %}
             data-{{ k }}= "{{ v }}"
-            {% endif %}{% endfor %}>
-            {{ f.title|capfirst }}
-          </th>
+            {% endif %}{% endfor %}>{{ f.title|capfirst }}</th>
         {% endfor %} 
       </tr>
     </thead>
@@ -35,106 +26,9 @@
 {% endif %}
 
 {{ endpoint.get_datatable_config|json_script:"datatables-config" }}
-
-
-{% endblock content %}
-
-{% block scripts %}
-<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-
-<script>
-  $(document).ready(function() {
-
-
-    var $grid = $('#template-container').masonry({
-      itemSelector: '.card',
-      columnWidth: '.w-25',
-      percentPosition: true,
-      initLayout: false,
-    });
-
-    var $table = $('.datatable')
-    .on( 'init.dt', function () {
-      $grid.masonry('destroy').masonry();
-    } )
-    .AutoTable({
-      {% comment %} buttons: [
-      "searchPanes",
-      {
-        extend: 'print',
-        // text: 'Print',
-        autoPrint: false,
-        footer: true,
-        customize: function (win, config, table) {
-          $(win.document.body).append(templateContainer.clone());
-          $(win.document.body).append($("#appFooter").clone());
-        },
-        exportOptions: {
-            columns: ':not(.noPrint) :visible'
-        },
-        messageBottom: "This is a custom message added to the print view",
-      },
-      {
-        extend: 'collection',
-        text: 'Export',
-        buttons: [ 
-          {
-            extend: 'csv',
-            exportOptions: {
-                columns: ':not(.noPrint) :visible'
-            }
-          },
-          {
-            extend: 'excel',
-            exportOptions: {
-                columns: ':not(.noPrint) :visible'
-            }
-          },
-          {
-            extend: 'pdf',
-            exportOptions: {
-                columns: ':not(.noPrint) :visible'
-            }
-          },
-        ],
-      },
-      {
-        extend: 'colvis',
-        text: 'Columns',
-        collectionLayout: 'fixed columns',
-        collectionTitle: 'Column visibility control',
-        columns: ':not(.noVis)'
-      },
-    ], {% endcomment %}
-              // searchPanes: true,
-            // layout: 'columns-1',
-            // cascadePanes: true,
-          //   orderable: false,
-          //   // filterChanged: function (count) {
-          //   //   if (count === 0) {
-          //   //     $('#rightSidebarToggle').find('span').remove()
-          //   //     return
-          //   //   }
-          //   //   $('#rightSidebarToggle').find('span').remove()
-          //   //   $('#rightSidebarToggle').append(`<span class="badge bg-primary">${count}</span>`)
-        
-          //   // },
-          //   dtOpts: {
-          //     paging: true,
-          //     pagingType: 'numbers',
-          //     searching: true,
-          //   },
-          // },
-    });
-
-
-    $table.on( 'draw.dt', function () {
-      $grid.masonry('destroy').masonry();
-    } );
+{{ endpoint.get_layout|json_script:"layout-config" }}
 
 
 
-  })
-</script>
-{% endblock scripts %}
+
 

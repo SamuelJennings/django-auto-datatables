@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static "auto_datatables/css/auto-datatable.css" %}">
+{% endblock %}
+
+
+{% block content %}
+HALLO
+ {% include "auto_datatables/datatable.html" %}
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    var $table = $('.datatable').AutoTable({});
+  })
+</script>
+{% endblock scripts %}
