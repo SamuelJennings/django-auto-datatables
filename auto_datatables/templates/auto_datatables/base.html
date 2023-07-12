@@ -6,15 +6,21 @@
 
 
 {% block content %}
-HALLO
  {% include "auto_datatables/datatable.html" %}
 {% endblock content %}
 
 
 {% block scripts %}
 <script>
-  $(document).ready(function() {
+  {% comment %} $(document).ready(function() { {% endcomment %}
     var $table = $('.datatable').AutoTable({});
-  })
+    $table.on( 'search.dt', function () {
+      console.log( 'Table redrawn due to a search' );
+  } );
+  {% comment %} $table.on( 'draw.dt', function () {
+    $table.searchPanes.rebuildPane();
+
+} ) {% endcomment %}
+  {% comment %} }) {% endcomment %}
 </script>
 {% endblock scripts %}

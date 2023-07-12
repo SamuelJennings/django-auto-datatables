@@ -23,6 +23,7 @@ django = ">=3.2"
 djangorestframework-datatables = "^0.7.0"
 drf-schema-adapter = "^3.0.6"
 djangorestframework-datatables-editor = "^0.3.3"
+drf-orjson-renderer = {version = "^1.7.1", optional = true}
 
 
 [tool.poetry.group.dev.dependencies]

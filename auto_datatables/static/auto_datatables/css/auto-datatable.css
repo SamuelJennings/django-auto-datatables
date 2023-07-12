@@ -8,3 +8,7 @@
   #template-container .card {
 	page-break-inside: avoid;
   }
+
+.auto-table-wrapper.templated #template-container {
+  display: block;
+}

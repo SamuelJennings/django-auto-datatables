@@ -10,10 +10,14 @@ from rest_framework_datatables import filters, pagination, renderers
 to_json = JSONEncoder().encode
 from django.core.exceptions import FieldDoesNotExist
 
+from .filters import AutoSearchPanesFilter, SearchPanesFilter
+from .renderers import DatatablesRenderer
+from .serializers import AutoTableModelSerializer
+
 
 class BaseViewSet(ModelViewSet):
-    renderer_classes = [renderers.DatatablesRenderer]
-    filter_backends = [filters.DatatablesFilterBackend]
+    renderer_classes = [DatatablesRenderer]
+    filter_backends = [AutoSearchPanesFilter]
 
 
 class BaseDataTable(Endpoint):
@@ -22,6 +26,7 @@ class BaseDataTable(Endpoint):
     row_template_name: str = ""
     router_class = EndpointRouter
     base_viewset = BaseViewSet
+    base_serializer = AutoTableModelSerializer
     include_str = False
     pagination_class = pagination.DatatablesPageNumberPagination
     read_only = True
@@ -119,6 +124,7 @@ class BaseDataTable(Endpoint):
             "dom",
             "paging",
             "searchPanes",
+            "pageLength",
         ]
         return {val: getattr(self, val) for val in allowed_config if hasattr(self, val)}
 
@@ -147,7 +153,6 @@ class BaseDataTable(Endpoint):
             )
         data.update(self.extra_attributes.get(field, {}))
 
-        # print(data)
         return data
 
     @classmethod

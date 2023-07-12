@@ -23,7 +23,7 @@ $.fn.extend({
               // on each row callback
             var template = $("#template").clone().children().first()
             $.each(data, function(key, val){
-              template.find(".data-" + key).text(val);
+              template.find(".data-" + key).html(val);
             });
 
             template.appendTo(templateContainer);
@@ -36,7 +36,7 @@ $.fn.extend({
     }
 
     console.log(djangoConfig)
-
+    console.log(config)
 
     return $(this).DataTable( {
       ...djangoConfig,
