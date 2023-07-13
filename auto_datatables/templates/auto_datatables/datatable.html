@@ -1,32 +1,15 @@
-{% load static %}
+{% load static autotables %}
 
 <div class="auto-table-wrapper {% if endpoint.row_template_name %}templated{% endif %}">
-  <table class='datatable' data-ajax="{% url endpoint.get_api_endpoint %}">
-    <thead>
-      <tr>
-        {% for f in endpoint.get_datatables_columns %}
-          <th {% for k, v in f.items %}{% if k != "title" %}
-            data-{{ k }}= "{{ v }}"
-            {% endif %}{% endfor %}>{{ f.title|capfirst }}</th>
-        {% endfor %} 
-      </tr>
-    </thead>
-  </table>
+  {% render_table %}
   <div class='container'>
-    <div id="template-container" class="w-100"></div>
+    <div id="template-container"></div>
   </div>
 </div> 
 
 <div class='page-footer'></div>
 
-{% if endpoint.row_template_name %}
-<div id='template' style="display: none;">
-{% include endpoint.row_template_name %}
-</div>
-{% endif %}
 
-{{ endpoint.get_datatable_config|json_script:"datatables-config" }}
-{{ endpoint.get_layout|json_script:"layout-config" }}
 
 
 

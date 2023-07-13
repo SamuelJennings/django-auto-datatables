@@ -1,3 +1,6 @@
+# import TextChoices from django
+from django.db.models import Choices
+
 styles = [
     {
         "datatables": "dt",

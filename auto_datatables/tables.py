@@ -13,6 +13,7 @@ from django.core.exceptions import FieldDoesNotExist
 from .filters import AutoSearchPanesFilter, SearchPanesFilter
 from .renderers import DatatablesRenderer
 from .serializers import AutoTableModelSerializer
+from .views import DataTableBaseView
 
 
 class BaseViewSet(ModelViewSet):
@@ -21,20 +22,32 @@ class BaseViewSet(ModelViewSet):
 
 
 class BaseDataTable(Endpoint):
-    view_class = TemplateView
-    template_name = "auto_datatables/base.html"
-    row_template_name: str = ""
+    view_class = DataTableBaseView
+    template_name = ""
+    row_template_name = ""
     router_class = EndpointRouter
     base_viewset = BaseViewSet
     base_serializer = AutoTableModelSerializer
     include_str = False
     pagination_class = pagination.DatatablesPageNumberPagination
     read_only = True
+    app_name: str = ""
+
+    class Config:
+        # these are specific to this class
+        orderable = True
+        hidden_fields = ["id"]
+        search_panes = []
+        extra_attributes = {}
+        layout: dict = {}
+        # defaults provided to datatables.net config
+        rowId = "pk"
+
     # these are specific to this class
     orderable = True
     hidden_fields = ["id"]
+    search_panes = []
     extra_attributes = {}
-    app_name: str = ""
     layout: dict = {}
     # defaults provided to datatables.net config
     rowId = "pk"
@@ -70,6 +83,10 @@ class BaseDataTable(Endpoint):
     #             if key not in self.DOM_MAP:
     #                 raise ValueError(f"Invalid layout key: {key}")
 
+    def get_search_panes(self):
+        """Return the search panes for the datatable."""
+        return self.search_panes
+
     def get_layout(self):
         """Return the layout for the datatable."""
         config = {}
@@ -80,13 +97,15 @@ class BaseDataTable(Endpoint):
                 config[k] = v
         return config
 
+    def get_context_data(self, **kwargs):
+        """Context data that will be given to the underlying view class."""
+        return {}
+
     def get_view(self):
         """Return a standard Django view that will be used to display the datatable."""
         return self.view_class.as_view(
-            template_name=self.template_name,
-            extra_context={
-                "endpoint": self,
-            },
+            endpoint=self,
+            extra_context=self.get_context_data(),
         )
 
     def get_name(self):
@@ -150,6 +169,7 @@ class BaseDataTable(Endpoint):
                 orderable=to_json(field in self.get_ordering_fields() or self.orderable),
                 searchable=to_json(field in self.get_search_fields()),
                 visible=to_json(field not in self.get_hidden_fields()),
+                type="string",
             )
         data.update(self.extra_attributes.get(field, {}))
 

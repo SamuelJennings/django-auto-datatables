@@ -1,0 +1,23 @@
+{% spaceless %}
+<table class='datatable' data-ajax="{% url endpoint.get_api_endpoint %}">
+ <thead>
+   <tr>
+     {% for f in endpoint.get_datatables_columns %}
+       <th {% for k, v in f.items %}{% if k != "title" %}
+         data-{{ k }}= "{{ v }}"
+         {% endif %}{% endfor %}
+         class='{{ f.class }} {{f.name}}'
+         >{{ f.title|capfirst }}</th>
+     {% endfor %} 
+   </tr>
+ </thead>
+</table>
+{% if endpoint.row_template_name %}
+<div id='template' style="display: none;">
+{% include endpoint.row_template_name %}
+</div>
+{% endif %}
+
+{{ endpoint.get_datatable_config|json_script:"datatables-config" }}
+{{ endpoint.get_layout|json_script:"layout-config" }}
+{% endspaceless %}

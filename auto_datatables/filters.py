@@ -18,7 +18,7 @@ class SearchPanesFilterBase(DatatablesBaseFilterBackend):
         passed to this method. Sub-classes can override this method to
         dynamically change the search fields based on request content.
         """
-        return getattr(view, "search_panes", None)
+        return getattr(view, "search_panes", [])
 
     def parse_datatables_query(self, request, view):
         """parse request.query_params into a list of fields and orderings and
@@ -40,7 +40,13 @@ class SearchPanesFilterBase(DatatablesBaseFilterBackend):
         return json.loads("[" + ",".join(vals) + "]")
 
     def get_search_panes(self, request, view):
-        """Parses query params and returns a dict of valid search pane fields and their values as a list."""
+        """Parses query params and returns a dict of valid search pane fields and their values as a list.
+        {
+            "is_active": [false],
+            "is_admin": [true],
+            "user_type": ["student", "teacher"],
+        }
+        """
         ret = {}
         for field in self.get_search_panes_fields(view):
             ret[field] = self.get_search_pane_values(request.query_params, field)
@@ -80,24 +86,46 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
 
     # def parse_results(self, request, view, results):
 
+    def choices_from_field(self, choices):
+        """Converts a list of choices into a list of dicts with label and value keys."""
+        return [{"label": label, "value": value} for value, label in choices]
+
+    def choices_from_queryset(self, field, qs):
+        """Converts a queryset into a list of dicts with label and value keys."""
+        return [{"label": str(item), "value": str(item)} for item in qs.values(field).distinct()]
+
+    def get_field_choices(self, field, qs):
+        model_field = qs.model._meta.get_field(field)
+        if hasattr(model_field, "choices"):
+            return self.choices_from_field(model_field.choices)
+        else:
+            return self.choices_from_queryset(field, qs)
+
     def get_search_pane_qs(self, val, qs, filtered_qs=None):
         # total = qs.values(val).annotate(total=Count(val))
-
-        total = {item[val]: item for item in qs.values(val).annotate(total=Count(val))}
-
+        choices = {c["value"]: c for c in self.get_field_choices(val, qs)}
+        for item in qs.values(val).annotate(total=Count(val)):
+            choices[item[val]]["total"] = item["total"]
         if filtered_qs is not None:
             # count = filtered_qs.values(val).annotate(count=Count(val))
-            filtered_count = {item[val]: item for item in filtered_qs.values(val).annotate(count=Count(val))}
+            for item in filtered_qs.values(val).annotate(count=Count(val)):
+                choices[item[val]]["count"] = item["count"]
 
-        result = []
-        for k, v in total.items():
-            ret = {"label": k, "value": k}
-            if filtered_qs is not None:
-                ret["total"] = filtered_count[k]["count"] if k in filtered_count else 0
-                ret["count"] = filtered_count[k]["count"] if k in filtered_count else 0
-            result.append(ret)
+        # total = {item[val]: item for item in qs.values(val).annotate(total=Count(val))}
+        # print(qs.values(val).annotate(total=Count(val)))
+        # if filtered_qs is not None:
+        #     # count = filtered_qs.values(val).annotate(count=Count(val))
+        #     filtered_count = {item[val]: item for item in filtered_qs.values(val).annotate(count=Count(val))}
 
-        return result
+        # result = []
+        # for k, v in total.items():
+        #     ret = {"label": k, "value": k}
+        #     if filtered_qs is not None:
+        #         ret["total"] = filtered_count[k]["count"] if k in filtered_count else 0
+        #         ret["count"] = filtered_count[k]["count"] if k in filtered_count else 0
+        #     result.append(ret)
+        print(choices.values())
+        return choices.values()
 
     def get_q(self, datatables_query):
         q = super().get_q(datatables_query)

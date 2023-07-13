@@ -1,13 +1,18 @@
-.auto-table-wrapper.templated .datatable {
-    display: none;
-  }
-  .auto-table-wrapper #template-container {
-    display: none;
+.auto-table-wrapper {
+  width: 100%;
+}
+
+.auto-table-wrapper.templated .dataTables_wrapper {
+    display: none !important;
   }
 
-  #template-container .card {
-	page-break-inside: avoid;
-  }
+.auto-table-wrapper #template-container {
+  display: none;
+}
+
+#template-container .card {
+page-break-inside: avoid;
+}
 
 .auto-table-wrapper.templated #template-container {
   display: block;

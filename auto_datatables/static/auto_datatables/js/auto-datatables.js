@@ -4,14 +4,24 @@ $.fn.extend({
     const templateContainer = $('#template-container')
     const djangoConfig = JSON.parse($('#datatables-config').text())
     const layoutConfig = JSON.parse($('#layout-config').text())
-    const options = fetch(this.data('ajax'), {
-      method: 'OPTIONS',
+    const field_options = JSON.parse($.ajax({
+        type: "OPTIONS",
+        url: this.data('ajax'),
+        async: false
+    }).responseText)['data'];
+    
+
+    $(this).find('th').each(function (index, element) {
+      console.log($(element).data())
     })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-      return data
-    })
+
+    console.log(field_options)
+
+    var choice_fields = {}
+    field_options.forEach((o) => { if (o["choices"]) { choice_fields[o["key"]] = o } })
+
+
+
     if ($("#template")) {
       extraConfig = {
           initComplete: function(settings, json) {
@@ -23,7 +33,7 @@ $.fn.extend({
               // on each row callback
             var template = $("#template").clone().children().first()
             $.each(data, function(key, val){
-              template.find(".data-" + key).html(val);
+              template.find(".data-" + key).html($.parseHTML( val ));
             });
 
             template.appendTo(templateContainer);
@@ -35,13 +45,27 @@ $.fn.extend({
       }
     }
 
-    console.log(djangoConfig)
-    console.log(config)
-
     return $(this).DataTable( {
       ...djangoConfig,
       ...config,
       ...extraConfig,
+      // responsive: true,
+      columnDefs: [
+
+        // { "width": "20%", "targets": "_all" },
+        // {
+        //   targets: '_all',
+        //   render: function ( data, type, row, meta ) {
+        //     return data
+        //   }
+        // },
+        {
+          targets: 'status',
+          render: function ( data, type, row, meta ) {
+            return choice_fields['status']["choices"].find((o) => { return o["value"] === data })["label"]
+          }
+        },
+      ],
       initComplete: function(settings, json) {
         wrapper.addClass('loaded')
         $.each( layoutConfig, function( key, value ) {
