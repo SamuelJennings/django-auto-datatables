@@ -45,18 +45,23 @@ getKeys = function (array) {
  }
 
 
-function autoColumnDefs (metadata, config) {
+function buildColumnDefs (config) {
   columnDefs = []
+  const metadata = config.metadata || []
+  
+  if (metadata.length === 0) {
+    return columnDefs
+  }
 
   // group metadata objects by type
   var metadata_by_type = {}
   metadata.forEach((o) => { metadata_by_type[o["type"]] = metadata_by_type[o["type"]] || []; metadata_by_type[o["type"]].push(o) })
-
+  console.log(metadata_by_type, metadata)
 
   // build column defs for select fields if there are any
   if (metadata_by_type["select"]) {
     // we need to add them indidually because each render function takes a different set of choices
-    select_fields.forEach((field) => {
+    metadata_by_type["select"].forEach((field) => {
       columnDefs.push({
         targets: field["key"],
         render:  renderChoices(field["choices"])
@@ -82,16 +87,15 @@ function autoColumnDefs (metadata, config) {
   if (metadata_by_type["datetime"]) {
     columnDefs.push({
       targets: getKeys(metadata_by_type["datetime"]),
-      render: DataTable.render.datetime("Do MMM YYYY")
+      render: DataTable.render.datetime(config.datetime_format || "Do MMM YYYY")
     })
   }
 
   template = {
-    first_name: "<a href='/users/${id}/'>${first_name}</a>",
+    get_absolute_url: '<a href="${get_absolute_url}" class="btn btn-sm btn-primary">View</a>',
+
   }
   if (template) {
-
-
     $.each(template, function (key, val) {
       columnDefs.push({
         targets: key,
@@ -112,13 +116,8 @@ $.fn.extend({
     const layoutConfig = JSON.parse($('#layout-config').text())
 
     const rowTemplate = String($('#row-template').text())
-    const metadata = JSON.parse($.ajax({
-        type: "OPTIONS",
-        url: this.data('ajax'),
-        async: false
-    }).responseText)['data'];
 
-    if ($("#template")) {
+    if (config.row_template) {
       extraConfig = {
           initComplete: function(settings, json) {
             // show new container for data
@@ -126,7 +125,7 @@ $.fn.extend({
             templateContainer.show();
           },
           rowCallback: function( row, data ) {
-            templateContainer.append(rowTemplate.format(data))
+            templateContainer.append(config.row_template.format(data))
           },
           preDrawCallback: function( settings ) {
               // clear list before draw
@@ -141,7 +140,7 @@ $.fn.extend({
       ...extraConfig,
       // responsive: true,
       columnDefs: [
-        ...autoColumnDefs(metadata, config),
+        ...buildColumnDefs(config),
       ],
       initComplete: function(settings, json) {
         wrapper.addClass('loaded')
@@ -152,47 +151,6 @@ $.fn.extend({
      } );
   }
 });
-
-// $(function () {
-
-//   const templateContainer = $('#template-container')
-//   const config = JSON.parse(document.getElementById('datatables-config').textContent)
-//   var extraConfig = {}
-//   if ($("#template")) {
-//     extraConfig = {
-//         initComplete: function(settings, json) {
-//           // show new container for data
-//           templateContainer.insertBefore('#example');
-//           templateContainer.show();
-//           $('#DataTables_Table_0_info').appendTo($('#appFooter'))
-//         },
-//         rowCallback: function( row, data ) {
-//             // on each row callback
-//           var template = $("#template").clone().children().first()
-//           $.each(data, function(key, val){
-//             template.find(".data-" + key).text(val);
-//           });
-
-//           template.appendTo(templateContainer);
-//         },
-//         preDrawCallback: function( settings ) {
-//             // clear list before draw
-//             templateContainer.empty();
-//         },
-//         "createdRow": function( row, data, dataIndex ) {
-//           // if ( data[4] == "A" ) {
-//             // $(row).addClass( 'bg-primary' );
-//           // }
-//         }
-//     }
-//   }
-
-
-//   var table = $(".datatable").DataTable( {
-//     ...config,
-//     ...extraConfig,
-
-//  } );
 
 // new $.fn.dataTable.Buttons(table, {
   // buttons: [

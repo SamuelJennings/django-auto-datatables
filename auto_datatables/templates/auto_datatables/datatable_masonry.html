@@ -67,7 +67,7 @@
         footer: true,
         customize: function (win, config, table) {
           $(win.document.body).append(templateContainer.clone());
-          $(win.document.body).append($("#appFooter").clone());
+          $(win.document.body).append($(".application-footer").clone());
         },
         exportOptions: {
             columns: ':not(.noPrint) :visible'

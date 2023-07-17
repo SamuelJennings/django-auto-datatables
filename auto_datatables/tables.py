@@ -9,6 +9,7 @@ from rest_framework_datatables import filters, pagination, renderers
 
 to_json = JSONEncoder().encode
 from django.core.exceptions import FieldDoesNotExist
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_auto_endpoint.metadata import AutoMetadata
 
 from .filters import AutoSearchPanesFilter, SearchPanesFilter
@@ -20,7 +21,7 @@ from .views import DataTableBaseView
 
 class BaseViewSet(ModelViewSet):
     renderer_classes = [DatatablesRenderer]
-    filter_backends = [AutoSearchPanesFilter]
+    filter_backends = [DjangoFilterBackend, AutoSearchPanesFilter]
     metadata_class = AutoMetadata
 
 
@@ -54,7 +55,8 @@ class BaseDataTable(Endpoint):
     extra_attributes = {}
     layout: dict = {}
     email_template = '<a href="mailto:{{email}}">{{email}}</a>'
-    absolute_url_template = ""
+    link_template = '<a href="{{data}}">{{data}}</a>'
+    image_template = '<img src="{{data}}">'
     boolean_templates = {
         "true": '<i class="fas fa-check">{{data}}</i>',
         "false": '<i class="fas fa-times">{{data}}</i>',
@@ -170,29 +172,30 @@ class BaseDataTable(Endpoint):
         """Build the columns for the datatable."""
         columns = []
         for field in self.get_fields_from_serializer():
-            columns.append(self.get_datatables_column(field))
+            columns.append(self.get_column_props(field))
         return columns
 
-    def get_datatables_column(self, field):
-        """Build a single column for the datatable."""
-        data = {}
+    def get_column_props(self, field):
+        """Gets the column properties for a single field."""
         try:
-            f = self.model._meta.get_field(field)
+            verbose_name = self.model._meta.get_field(field).verbose_name
         except FieldDoesNotExist:
-            data.update(data=field, name=field, title=field.title())
-        else:
-            data.update(
-                data=field,
-                name=field,
-                title=f.verbose_name,
-                orderable=to_json(field in self.get_ordering_fields() or self.orderable),
-                searchable=to_json(field in self.get_search_fields()),
-                visible=to_json(field not in self.get_hidden_fields()),
-                type="string",
-            )
-        data.update(self.extra_attributes.get(field, {}))
+            verbose_name = None
 
+        data = {
+            "data": field,
+            "name": field,
+            "title": verbose_name or field.title(),
+            "orderable": to_json(field in self.get_ordering_fields() or self.orderable),
+            "searchable": to_json(field in self.get_search_fields()),
+            "visible": to_json(field not in self.get_hidden_fields()),
+        }
+        data.update(self.get_extra_attributes(field))
         return data
+
+    def get_extra_attributes(self, field):
+        """Return extra attributes for a field."""
+        return self.extra_attributes.get(field, {})
 
     @classmethod
     def as_view(cls, name=None, **initkwargs):
