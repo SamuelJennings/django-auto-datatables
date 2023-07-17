@@ -1,6 +1,7 @@
 {% load static autotables %}
 
 <div class="auto-table-wrapper {% if endpoint.row_template_name %}templated{% endif %}">
+  <div class="auto-table-wrapper">
   {% render_table %}
   <div class='container'>
     <div id="template-container"></div>

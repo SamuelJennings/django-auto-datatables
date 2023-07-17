@@ -17,6 +17,7 @@
 {% include endpoint.row_template_name %}
 </div>
 {% endif %}
+<script id='row-template' type='application/json'>{{ row_template|safe }}</script>
 
 {{ endpoint.get_datatable_config|json_script:"datatables-config" }}
 {{ endpoint.get_layout|json_script:"layout-config" }}

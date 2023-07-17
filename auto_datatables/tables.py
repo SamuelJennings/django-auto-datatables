@@ -9,16 +9,19 @@ from rest_framework_datatables import filters, pagination, renderers
 
 to_json = JSONEncoder().encode
 from django.core.exceptions import FieldDoesNotExist
+from drf_auto_endpoint.metadata import AutoMetadata
 
 from .filters import AutoSearchPanesFilter, SearchPanesFilter
 from .renderers import DatatablesRenderer
 from .serializers import AutoTableModelSerializer
+from .utils import template_to_js_literal
 from .views import DataTableBaseView
 
 
 class BaseViewSet(ModelViewSet):
     renderer_classes = [DatatablesRenderer]
     filter_backends = [AutoSearchPanesFilter]
+    metadata_class = AutoMetadata
 
 
 class BaseDataTable(Endpoint):
@@ -45,10 +48,21 @@ class BaseDataTable(Endpoint):
 
     # these are specific to this class
     orderable = True
+    field_render_templates = {}
     hidden_fields = ["id"]
     search_panes = []
     extra_attributes = {}
     layout: dict = {}
+    email_template = '<a href="mailto:{{email}}">{{email}}</a>'
+    absolute_url_template = ""
+    boolean_templates = {
+        "true": '<i class="fas fa-check">{{data}}</i>',
+        "false": '<i class="fas fa-times">{{data}}</i>',
+        "null": '<i class="fas fa-minus">{{data}}</i>',
+    }
+    date_format = "YYYY-MM-DD"
+    datetime_format = "YYYY-MM-DD HH:mm:ss"
+    time_format = "HH:mm:ss"
     # defaults provided to datatables.net config
     rowId = "pk"
 
@@ -82,6 +96,11 @@ class BaseDataTable(Endpoint):
     #                 )
     #             if key not in self.DOM_MAP:
     #                 raise ValueError(f"Invalid layout key: {key}")
+
+    def get_field_render_templates(self):
+        """Return the field render templates for the datatable."""
+        templates = self.field_render_templates
+        return {k: template_to_js_literal(template_str=v) for k, v in templates.items()}
 
     def get_search_panes(self):
         """Return the search panes for the datatable."""

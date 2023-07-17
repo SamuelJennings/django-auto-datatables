@@ -13,6 +13,7 @@ fields = [
     "is_active",
     "is_staff",
     "is_superuser",
+    "date_joined",
 ]
 
 
@@ -20,6 +21,7 @@ class BaseTable(BaseDataTable):
     model = User
     fields = fields
     search_fields = ["first_name", "last_name", "username", "email"]
+    hidden_fields = []
     searchPanes = {  # noqa: RUF012
         # "threshold": 0.5,
         "cascadePanes": True,
@@ -32,6 +34,9 @@ class BaseTable(BaseDataTable):
             "pagingType": "numbers",
             "paging": True,
         },
+    }
+    field_render_templates = {
+        "first_name": "<b>{{ first_name }}</b>",
     }
 
 

@@ -133,6 +133,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
+    # "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # "DEFAULT_METADATA_CLASS": "drf_auto_endpoint.metadata.AutoMetadata",
 }
 
 PASSWORD_HASHERS = (
