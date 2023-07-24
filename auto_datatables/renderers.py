@@ -1,5 +1,4 @@
 # from drf_orjson_renderer.renderers import ORJSONRenderer
-import pprint
 
 from rest_framework_datatables.utils import get_param
 from rest_framework_datatables_editor.renderers import DatatablesRenderer
@@ -11,7 +10,7 @@ class DatatablesRenderer(DatatablesRenderer):
         Render `data` into JSON, returning a bytestring.
         """
         if data is None:
-            return bytes()
+            return b""
 
         request = renderer_context["request"]
         new_data = {}
@@ -29,10 +28,7 @@ class DatatablesRenderer(DatatablesRenderer):
             new_data["data"] = results
             if view and hasattr(view, "_datatables_filtered_count"):
                 count = view._datatables_filtered_count
-            if view and hasattr(view, "_datatables_total_count"):
-                total_count = view._datatables_total_count
-            else:
-                total_count = count
+            total_count = view._datatables_total_count if view and hasattr(view, "_datatables_total_count") else count
             new_data["recordsFiltered"] = count
             new_data["recordsTotal"] = total_count
         else:
@@ -40,17 +36,8 @@ class DatatablesRenderer(DatatablesRenderer):
         # add datatables "draw" parameter
         new_data["draw"] = int(get_param(request, "draw", "1"))
 
-        new_data["searchPanes"] = getattr(view, "_search_panes", {})
-
-        # new_data["searchPanes"] = {
-        #     "options": {
-        #         "is_staff": [
-        #             {"label": "True", "value": "true", "count": "34", "total": "56"},
-        #             {"label": "False", "value": "false", "count": "23", "total": "39"},
-        #         ]
-        #     }
-        # }
-        # pprint.pprint(new_data["searchPanes"]["options"])
+        if getattr(view, "_search_panes", None):
+            new_data["searchPanes"] = getattr(view, "_search_panes", {})
 
         serializer_class = None
         if hasattr(view, "get_serializer_class"):
@@ -72,10 +59,10 @@ class DatatablesRenderer(DatatablesRenderer):
 
         self._filter_extra_json(view, new_data, extra_json_funcs)
 
-        return super(DatatablesRenderer, self).render(new_data, accepted_media_type, renderer_context)
+        return super().render(new_data, accepted_media_type, renderer_context)
 
 
-# class DatatablesORJSONRenderer(ORJSONRenderer):
+# class DatatablesORJSONRenderer(ORJSONRenderer, DatatablesRenderer):
 #     """This class is an integration of
 #     drf_orjson_renderer.renderers.ORJSONRenderer and
 #     rest_framework_datatables_editor.renderers.DatatablesRenderer.
@@ -145,39 +132,3 @@ class DatatablesRenderer(DatatablesRenderer):
 #         self._filter_extra_json(view, new_data, extra_json_funcs)
 
 #         return super().render(new_data, accepted_media_type, renderer_context)
-
-#     def _filter_unused_fields(self, request, result, force_serialize):
-#         # list of params to keep, triggered by ?keep= and can be comma
-#         # separated.
-#         keep = request.query_params.get("keep", [])
-#         cols = []
-#         i = 0
-#         while True:
-#             col = request.query_params.get("columns[%d][data]" % i)
-#             if col is None:
-#                 break
-#             cols.append(col.split(".").pop(0))
-#             i += 1
-#         if len(cols):
-#             data = result["data"]
-#             for i, item in enumerate(data):
-#                 try:
-#                     keys = set(item.keys())
-#                 except AttributeError:
-#                     continue
-#                 for k in keys:
-#                     if k not in cols and not k.startswith("DT_Row") and k not in force_serialize and k not in keep:
-#                         result["data"][i].pop(k)
-
-#     def _filter_extra_json(self, view, result, extra_json_funcs):
-#         read_only_keys = result.keys()  # don't alter anything
-#         for func in extra_json_funcs:
-#             if not hasattr(view, func):
-#                 raise TypeError(f"extra_json_funcs: {func} not a view method.")
-#             method = getattr(view, func)
-#             if not callable(method):
-#                 raise TypeError(f"extra_json_funcs: {func} not callable.")
-#             key, val = method()
-#             if key in read_only_keys:
-#                 raise ValueError(f"Duplicate key found: {key}")
-#             result[key] = val

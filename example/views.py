@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from auto_datatables.mixins import AjaxMixin, ScrollerMixin, ServerSideMixin
-from auto_datatables.tables import BaseDataTable
+from auto_datatables.views import DataTableBaseView
 
 User = get_user_model()
 fields = [
@@ -17,42 +16,72 @@ fields = [
 ]
 
 
-class BaseTable(BaseDataTable):
+# searchPanes = {
+#     # "threshold": 0.5,
+#     "cascadePanes": True,
+#     "orderable": False,
+#     "controls": True,
+#     "viewCount": False,
+#     # "viewTotal": True,
+#     "dtOpts": {
+#         "searching": True,
+#         "pagingType": "numbers",
+#         "paging": True,
+#     },
+# }
+
+
+class SimpleAjaxTable:
+    deferRender = True
+    ordering = True
+    paging = True
+    fixedHeader = True
+    # dom = "PBfrtip"
+    page_size = 100
+    scrollX = True
+    scrollY = 400
+
+
+class ServerSideProcessing(SimpleAjaxTable):
+    serverSide = True
+    page_size = 25
+    paging = True
+
+
+class BaseTable(DataTableBaseView):
     model = User
     fields = fields
-    search_fields = ["first_name", "last_name", "username", "email"]
-    hidden_fields = []
-    searchPanes = {  # noqa: RUF012
-        # "threshold": 0.5,
-        "cascadePanes": True,
-        "orderable": False,
-        "controls": True,
-        "viewCount": False,
-        # "viewTotal": True,
-        "dtOpts": {
-            "searching": True,
-            "pagingType": "numbers",
-            "paging": True,
-        },
-    }
-    field_render_templates = {
-        "first_name": "<b>{{ first_name }}</b>",
-    }
+    search_fields = [
+        "last_name",
+    ]
+    hidden_fields = ["id"]
+
+    # email_template = "<a href='mailto:{{object.data}}'>{{object.data}}</a>"
+    email_template = '<a href="mailto:${data}"><i class="fa-solid fa-envelope"></i></a>'
+    # text_widget_template = "<h1>{{object.data}}</h1>"
+    first_name_template = "<span class='text-primary'>{{object.data}}</span>"
 
 
-class AjaxTableView(AjaxMixin, BaseTable):
+class AjaxTable(BaseTable):
     # row_template_name = "user_card.html"
-    paging = False
-    fixedHeader = True
-    dom = "PBfrtip"
+    table_config_class = SimpleAjaxTable
+    debug = True
 
 
-class ServerSideProcessing(ServerSideMixin, BaseTable):
-    dom = "Pfrtip"
-    row_template_name = "user_card.html"
-
+class ServerSideTable(BaseTable):
+    table_config_class = ServerSideProcessing
     # row_template_name = "user_card.html"
 
 
-class ScrollerProcessing(ScrollerMixin, BaseTable):
-    dom = "Pfrtip"
+class ScrollerConfig:
+    serverSide = True
+    scrollY = 300
+    scroller = True
+    deferRender = True
+    ordering = True
+    scrollX = True
+
+
+class ScrollerTable(BaseTable):
+    table_config_class = ScrollerConfig
+    debug = True

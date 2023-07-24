@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static autotables %}
 {% block css %}
 <link rel="stylesheet" href="{% static "auto_datatables/css/auto-datatable.css" %}">
 {% endblock %}
@@ -7,20 +7,13 @@
 
 {% block content %}
  {% include "auto_datatables/datatable.html" %}
+ {% comment %} {% render_table %} {% endcomment %}
+
 {% endblock content %}
 
 
 {% block scripts %}
 <script>
-  {% comment %} $(document).ready(function() { {% endcomment %}
-    var $table = $('.datatable').AutoTable({});
-    $table.on( 'search.dt', function () {
-      console.log( 'Table redrawn due to a search' );
-  } );
-  {% comment %} $table.on( 'draw.dt', function () {
-    $table.searchPanes.rebuildPane();
-
-} ) {% endcomment %}
-  {% comment %} }) {% endcomment %}
+    var $table = $('.datatable').AutoTable({{ config }});
 </script>
 {% endblock scripts %}

@@ -17,7 +17,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "auto_datatables",
-    "drf_auto_endpoint",
+    # "drf_auto_endpoint",
     "example",
 ]
 

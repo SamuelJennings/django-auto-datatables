@@ -1,8 +1,8 @@
 {% spaceless %}
-<table class='datatable' data-ajax="{% url endpoint.get_api_endpoint %}">
+<table class="datatable w-100 {{ table_css_class }}" data-ajax="{{ request.path }}?format=datatables">
  <thead>
    <tr>
-     {% for f in endpoint.get_datatables_columns %}
+     {% for f in view.build_columns %}
        <th {% for k, v in f.items %}{% if k != "title" %}
          data-{{ k }}= "{{ v }}"
          {% endif %}{% endfor %}
@@ -12,13 +12,10 @@
    </tr>
  </thead>
 </table>
-{% if endpoint.row_template_name %}
+{% comment %} {% if view.row_template_name %}
 <div id='template' style="display: none;">
-{% include endpoint.row_template_name %}
+{% include view.row_template_name %}
 </div>
-{% endif %}
-<script id='row-template' type='application/json'>{{ row_template|safe }}</script>
+{% endif %} {% endcomment %}
 
-{{ endpoint.get_datatable_config|json_script:"datatables-config" }}
-{{ endpoint.get_layout|json_script:"layout-config" }}
 {% endspaceless %}

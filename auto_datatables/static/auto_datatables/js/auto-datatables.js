@@ -9,7 +9,8 @@ String.prototype.format = function(params) {
 renderTemplate = function ( template ) {
   return function ( data, type, row ) {
     if ( type === 'display' ) {
-      return template.format(row)
+      object = {'data': data, "object": row}
+      return template.format(object)
     }
     // Search, order and type can use the original data
     return data;
@@ -30,8 +31,8 @@ renderBoolean = function ( data, type, row ) {
   return function ( data, type, row ) {
     if ( type === 'display' ) {
       return data === true ?
-                '<i class="fas fa-check text-success"><span style="display:none">' + data + '</span></i>' :
-                '<i class="fas fa-times text-danger"><span style="display:none">' + data + '</span></i>';
+                '<i class="fas fa-check text-success">✔<span style="display:none">' + data + '</span></i>' :
+                '<i class="fas fa-times text-danger">✘<span style="display:none">' + data + '</span></i>';
     }
     // Search, order and type can use the original data
     return data;
@@ -56,7 +57,6 @@ function buildColumnDefs (config) {
   // group metadata objects by type
   var metadata_by_type = {}
   metadata.forEach((o) => { metadata_by_type[o["type"]] = metadata_by_type[o["type"]] || []; metadata_by_type[o["type"]].push(o) })
-  console.log(metadata_by_type, metadata)
 
   // build column defs for select fields if there are any
   if (metadata_by_type["select"]) {
@@ -69,13 +69,26 @@ function buildColumnDefs (config) {
     })
   }
 
-  if (metadata_by_type["email"]) {
-    template = config.email_template || '<a href="mailto:${email}"><i class="fa-solid fa-envelope"></i></a>';
+  // applies a template to a specific field
+  $.each(config.field_templates, function (key, val) {
     columnDefs.push({
-      targets: getKeys(metadata_by_type["email"]),
-      render: renderTemplate(template)
+      targets: key,
+      render: renderTemplate(val)
     })
-  }
+  })
+
+  // applies a template to a specified widget type
+  $.each(config.widget_templates, function (key, val) {
+    if (!metadata_by_type[key]) {
+      return
+    }
+    columnDefs.push({
+      targets: getKeys(metadata_by_type[key]),
+      render: renderTemplate(val)
+    })
+  })
+
+
 
   if (metadata_by_type["checkbox"]) {
     columnDefs.push({
@@ -87,7 +100,7 @@ function buildColumnDefs (config) {
   if (metadata_by_type["datetime"]) {
     columnDefs.push({
       targets: getKeys(metadata_by_type["datetime"]),
-      render: DataTable.render.datetime(config.datetime_format || "Do MMM YYYY")
+      render: DataTable.render.datetime(config.datetime_format)
     })
   }
 
@@ -112,16 +125,16 @@ $.fn.extend({
   AutoTable: function (config) {
     const wrapper = $('.auto-table-wrapper')
     const templateContainer = $('#template-container')
-    const djangoConfig = JSON.parse($('#datatables-config').text())
-    const layoutConfig = JSON.parse($('#layout-config').text())
-
-    const rowTemplate = String($('#row-template').text())
 
     if (config.row_template) {
       extraConfig = {
           initComplete: function(settings, json) {
             // show new container for data
             templateContainer.insertBefore('#template-container');
+            wrapper.addClass('loaded')
+            $.each( config.layout, function( key, value ) {
+              $(key).appendTo($(value))
+            });
             templateContainer.show();
           },
           rowCallback: function( row, data ) {
@@ -134,20 +147,23 @@ $.fn.extend({
       }
     }
 
+    if (config.debug) {
+      console.log(config)
+    }
+
     return $(this).DataTable( {
-      ...djangoConfig,
-      ...config,
-      ...extraConfig,
-      // responsive: true,
+      ...config.datatables,
       columnDefs: [
         ...buildColumnDefs(config),
       ],
       initComplete: function(settings, json) {
         wrapper.addClass('loaded')
-        $.each( layoutConfig, function( key, value ) {
+        $.each( config.layout, function( key, value ) {
           $(key).appendTo($(value))
         });
       },
+      ...extraConfig,
+
      } );
   }
 });

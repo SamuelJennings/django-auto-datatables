@@ -4,9 +4,7 @@ from django.db.models import Count, Q
 from rest_framework_datatables.filters import (
     DatatablesBaseFilterBackend,
     DatatablesFilterBackend,
-    f_search_q,
 )
-from rest_framework_datatables.utils import get_param
 
 
 class SearchPanesFilterBase(DatatablesBaseFilterBackend):
@@ -61,7 +59,11 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
         total_count = view.get_queryset().count()
         self.set_count_before(view, total_count)
 
-        filtered_count_before = queryset.count() if len(getattr(view, "filter_backends", [])) > 1 else total_count
+        filtered_count_before = (
+            queryset.count()
+            if len(getattr(view, "filter_backends", [])) > 1
+            else total_count
+        )
         datatables_query = self.parse_datatables_query(request, view)
 
         q = self.get_q(datatables_query)
@@ -73,8 +75,10 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
         self.set_count_after(view, filtered_count)
 
         search_panes = {"options": {}}
-        for val in datatables_query["search_panes"].keys():
-            search_panes["options"][val] = self.get_search_pane_qs(val, view.queryset, queryset)
+        for val in datatables_query["search_panes"]:
+            search_panes["options"][val] = self.get_search_pane_qs(
+                val, view.get_queryset(), queryset
+            )
 
         view._search_panes = search_panes
 
@@ -84,19 +88,21 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
 
         return queryset
 
-    # def parse_results(self, request, view, results):
-
     def choices_from_field(self, choices):
         """Converts a list of choices into a list of dicts with label and value keys."""
         return [{"label": label, "value": value} for value, label in choices]
 
     def choices_from_queryset(self, field, qs):
         """Converts a queryset into a list of dicts with label and value keys."""
-        return [{"label": str(item), "value": str(item)} for item in qs.values(field).distinct()]
+        return [
+            {"label": str(item), "value": item}
+            for item in qs.values_list(field, flat=True).distinct()
+        ]
 
     def get_field_choices(self, field, qs):
+        # fetch the model field from the model
         model_field = qs.model._meta.get_field(field)
-        if hasattr(model_field, "choices"):
+        if hasattr(model_field, "choices") and model_field.choices is not None:
             return self.choices_from_field(model_field.choices)
         else:
             return self.choices_from_queryset(field, qs)
@@ -124,7 +130,6 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
         #         ret["total"] = filtered_count[k]["count"] if k in filtered_count else 0
         #         ret["count"] = filtered_count[k]["count"] if k in filtered_count else 0
         #     result.append(ret)
-        print(choices.values())
         return choices.values()
 
     def get_q(self, datatables_query):
@@ -134,8 +139,3 @@ class SearchPanesFilter(DatatablesFilterBackend, SearchPanesFilterBase):
                 q &= Q(**{f"{k}__in": v})
 
         return q
-
-
-class AutoSearchPanesFilter(SearchPanesFilter):
-    def get_search_panes_fields(self, view):
-        return view.endpoint.search_panes
