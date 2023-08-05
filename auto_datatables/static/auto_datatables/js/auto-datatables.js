@@ -41,33 +41,29 @@ renderBoolean = function ( data, type, row ) {
 
 
 
-getKeys = function (array) { 
+getKeys = function (array) {
   return array.map((o) => { return o["key"] })
  }
+
+function getRenderedRowValues(obj, arr) {
+  // Get the object's property names as an array
+  const propNames = Object.keys(obj);
+
+  // Iterate through the property names
+  for (let i = 0; i < propNames.length; i++) {
+    const propName = propNames[i];
+
+    // Replace the object's property value with the corresponding value from the array
+    obj[propName] = arr[i];
+  }
+
+  return obj;
+}
+
 
 
 function buildColumnDefs (config) {
   columnDefs = []
-  const metadata = config.metadata || []
-  
-  if (metadata.length === 0) {
-    return columnDefs
-  }
-
-  // group metadata objects by type
-  var metadata_by_type = {}
-  metadata.forEach((o) => { metadata_by_type[o["type"]] = metadata_by_type[o["type"]] || []; metadata_by_type[o["type"]].push(o) })
-
-  // build column defs for select fields if there are any
-  if (metadata_by_type["select"]) {
-    // we need to add them indidually because each render function takes a different set of choices
-    metadata_by_type["select"].forEach((field) => {
-      columnDefs.push({
-        targets: field["key"],
-        render:  renderChoices(field["choices"])
-      })
-    })
-  }
 
   // applies a template to a specific field
   $.each(config.field_templates, function (key, val) {
@@ -77,43 +73,53 @@ function buildColumnDefs (config) {
     })
   })
 
+
+
+  const metadata = config.metadata || []
+
+  if (metadata.length === 0) {
+    return columnDefs
+  }
+
+  // group metadata objects by type
+  var metadata_by_type = {}
+  metadata.forEach((o) => { metadata_by_type[o["type"]] = metadata_by_type[o["type"]] || []; metadata_by_type[o["type"]].push(o) })
+
+  // build column defs for select fields if there are any
+  if (getMetadataByType(metadata, "select")) {
+    // we need to add them indidually because each render function takes a different set of choices
+    getMetadataByType(metadata, "select").forEach((field) => {
+      columnDefs.push({
+        targets: field["key"],
+        render:  renderChoices(field["choices"])
+      })
+    })
+  }
+
   // applies a template to a specified widget type
   $.each(config.widget_templates, function (key, val) {
-    if (!metadata_by_type[key]) {
+    if (!getMetadataByType(metadata, key)) {
       return
     }
     columnDefs.push({
-      targets: getKeys(metadata_by_type[key]),
+      targets: getKeys(getMetadataByType(metadata, key)),
       render: renderTemplate(val)
     })
   })
 
 
 
-  if (metadata_by_type["checkbox"]) {
+  if (getMetadataByType(metadata, "checkbox")) {
     columnDefs.push({
-      targets: getKeys(metadata_by_type["checkbox"]),
+      targets: getKeys(getMetadataByType(metadata, "checkbox")),
       render: renderBoolean()
     })
   }
-
-  if (metadata_by_type["datetime"]) {
+  if (getMetadataByType(metadata, "datetime")) {
     columnDefs.push({
-      targets: getKeys(metadata_by_type["datetime"]),
+      targets: getKeys(getMetadataByType(metadata, "datetime")),
       render: DataTable.render.datetime(config.datetime_format)
-    })
-  }
-
-  template = {
-    get_absolute_url: '<a href="${get_absolute_url}" class="btn btn-sm btn-primary">View</a>',
-
-  }
-  if (template) {
-    $.each(template, function (key, val) {
-      columnDefs.push({
-        targets: key,
-        render:  renderTemplate(val)
-      })
+      // render: DataTable.render.datetime(null)
     })
   }
 
@@ -121,10 +127,19 @@ function buildColumnDefs (config) {
 
 }
 
+function getMetadataByType (metadata, type) {
+  return metadata.filter((o) => { return o["type"] === type })
+}
+
 $.fn.extend({
   AutoTable: function (config) {
     const wrapper = $('.auto-table-wrapper')
     const templateContainer = $('#template-container')
+
+    const metadata = config.metadata || []
+    const choiceFields = getMetadataByType(metadata, "select");
+
+    var extraConfig = {}
 
     if (config.row_template) {
       extraConfig = {
@@ -138,7 +153,13 @@ $.fn.extend({
             templateContainer.show();
           },
           rowCallback: function( row, data ) {
-            templateContainer.append(config.row_template.format(data))
+            let new_data = JSON.parse(JSON.stringify(data));
+            $.each(choiceFields, function (key, val) {
+              var field = val["key"]
+              new_data[field] = renderChoices(val["choices"])(new_data[field], 'display', new_data)
+            })
+
+            templateContainer.append(config.row_template.format(new_data))
           },
           preDrawCallback: function( settings ) {
               // clear list before draw
@@ -168,56 +189,4 @@ $.fn.extend({
   }
 });
 
-// new $.fn.dataTable.Buttons(table, {
-  // buttons: [
-  //   {
-  //     extend: 'print',
-  //     // text: 'Print',
-  //     autoPrint: false,
-  //     footer: true,
-  //     customize: function (win, config, table) {
-  //       $(win.document.body).append(templateContainer.clone());
-  //       $(win.document.body).append($("#appFooter").clone());
-  //     },
-  //     exportOptions: {
-  //         columns: ':not(.noPrint) :visible'
-  //     },
-  //     messageBottom: "This is a custom message added to the print view",
-  //   },
-  //   {
-  //     extend: 'collection',
-  //     text: 'Export',
-  //     buttons: [ 
-  //       {
-  //         extend: 'csv',
-  //         exportOptions: {
-  //             columns: ':not(.noPrint) :visible'
-  //         }
-  //       },
-  //       {
-  //         extend: 'excel',
-  //         exportOptions: {
-  //             columns: ':not(.noPrint) :visible'
-  //         }
-  //       },
-  //       {
-  //         extend: 'pdf',
-  //         exportOptions: {
-  //             columns: ':not(.noPrint) :visible'
-  //         }
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     extend: 'colvis',
-  //     text: 'Columns',
-  //     collectionLayout: 'fixed columns',
-  //     collectionTitle: 'Column visibility control',
-  //     columns: ':not(.noVis)'
-  // },
-//   ],
-// });
 
-//  table.buttons().container().appendTo( $('.application-menu .btn-toolbar') );
-
-// });

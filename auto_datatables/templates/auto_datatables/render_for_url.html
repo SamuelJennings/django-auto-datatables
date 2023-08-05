@@ -1,0 +1,32 @@
+{% load static sekizai_tags %}
+
+{% spaceless %}
+<table id="{{ table.get_id }}" class="datatable w-100 {{ table_css_class }}" data-ajax="{{ table.url|default_if_none:request.path }}?format=datatables">
+ <thead>
+   <tr>
+     {% for f in table.build_columns %}
+       <th {% for k, v in f.items %}{% if k != "title" %}
+         data-{{ k }}= "{{ v }}"
+         {% endif %}{% endfor %}
+         class='{{ f.class }} {{f.name}}'
+         >{{ f.title|capfirst }}</th>
+     {% endfor %}
+   </tr>
+ </thead>
+</table>
+{% endspaceless %}
+
+{% addtoblock "scripts" %}<script src="{% static "geoluminate/js/datatables.min.js" %}"></script>{% endaddtoblock %}
+{% addtoblock "scripts" %}<script src="{% static "auto_datatables/js/auto-datatables.js" %}"></script>{% endaddtoblock %}
+
+{% addtoblock "scripts" %}
+<script>
+  $('#mainIndicator').toggle()
+  $(document).ready(function() {
+    var $table = $('#{{ table.get_id }}').AutoTable({{ table.get_js_config }});
+    {% comment %} $table.on( 'init.dt', function () {
+      $('#mainIndicator').toggle()
+    } ) {% endcomment %}
+  })
+</script>
+{% endaddtoblock %}
