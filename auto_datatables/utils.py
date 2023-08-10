@@ -1,7 +1,4 @@
-# import TextChoices from django
 import re
-
-from django.template import loader
 
 styles = [
     {
@@ -20,9 +17,7 @@ styles = [
 def template_to_js_literal(template_name="", template_str=""):
     """Converts a django template to a js template literal"""
     if not template_name and not template_str:
-        raise ValueError(
-            "Either template_name or template_str must be provided"
-        )  # noqa: TRY003
+        raise ValueError("Either template_name or template_str must be provided")  # noqa: TRY003
     if not template_str:
         # get the template string
         template_str = loader.get_template(template_name).template.source

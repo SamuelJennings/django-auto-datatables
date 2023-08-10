@@ -21,6 +21,7 @@ class AutoTableMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["table"] = self.table(request=self.request, **self.table_overrides)
+        context["template"] = self.table.row_template
         return context
 
 

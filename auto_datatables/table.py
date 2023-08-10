@@ -1,5 +1,6 @@
 import pprint
 
+from django.conf import settings as django_settings
 from django.core.exceptions import FieldDoesNotExist
 from django.template.loader import get_template, render_to_string
 from django.urls import resolve, reverse
@@ -40,7 +41,8 @@ class DataTable:
     time_format = None
 
     # misc
-    debug = False
+    debug = django_settings.DEBUG
+
     DOM_ELEMENTS_MAP = {
         "l": ".dataTables_length",
         "f": ".dataTables_filter",

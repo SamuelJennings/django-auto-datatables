@@ -127,6 +127,7 @@ function buildColumnDefs (config) {
 
 }
 
+
 function getMetadataByType (metadata, type) {
   return metadata.filter((o) => { return o["type"] === type })
 }
@@ -141,7 +142,12 @@ $.fn.extend({
 
     var extraConfig = {}
 
-    if (config.row_template) {
+    var source = $('#template-card').html();
+
+    // if (config.row_template) {
+    if (source) {
+      var template = Handlebars.compile(source);
+
       extraConfig = {
           initComplete: function(settings, json) {
             // show new container for data
@@ -152,6 +158,15 @@ $.fn.extend({
             });
             templateContainer.show();
           },
+          // rowCallback: function( row, data ) {
+          //   let new_data = JSON.parse(JSON.stringify(data));
+          //   $.each(choiceFields, function (key, val) {
+          //     var field = val["key"]
+          //     new_data[field] = renderChoices(val["choices"])(new_data[field], 'display', new_data)
+          //   })
+
+          //   templateContainer.append(config.row_template.format(new_data))
+          // },
           rowCallback: function( row, data ) {
             let new_data = JSON.parse(JSON.stringify(data));
             $.each(choiceFields, function (key, val) {
@@ -159,7 +174,7 @@ $.fn.extend({
               new_data[field] = renderChoices(val["choices"])(new_data[field], 'display', new_data)
             })
 
-            templateContainer.append(config.row_template.format(new_data))
+            templateContainer.append(template(new_data))
           },
           preDrawCallback: function( settings ) {
               // clear list before draw
