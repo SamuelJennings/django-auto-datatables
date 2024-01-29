@@ -17,6 +17,7 @@ from .table import DataTable
 class AutoTableMixin(ContextMixin):
     table = DataTable
     table_overrides = {}
+    template_name = "auto_datatables/base.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -29,7 +30,6 @@ class DataTableBaseView(ListAPIView, AutoTableMixin):
     renderer_classes = [TemplateHTMLRenderer, DatatablesRenderer]
     filter_backends = [DjangoFilterBackend, SearchPanesFilter]
     metadata_class = AutoMetadata
-    template_name = "auto_datatables/base.html"
     base_serializer_class = None
     filter_by_user = False
 

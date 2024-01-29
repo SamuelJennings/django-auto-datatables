@@ -1,5 +1,4 @@
 
-
 String.prototype.format = function(params) {
   const names = Object.keys(params);
   const vals = Object.values(params);
@@ -8,11 +7,9 @@ String.prototype.format = function(params) {
 
 renderTemplate = function ( template ) {
   return function ( data, type, row ) {
-    if ( type === 'display' ) {
-      object = {'data': data, "object": row}
-      return template.format(object)
+    if ( type === 'display' & data !== null ) {
+      return template.format({'data': data, "object": row})
     }
-    // Search, order and type can use the original data
     return data;
   };
 };
@@ -20,6 +17,10 @@ renderTemplate = function ( template ) {
 renderChoices = function ( choices ) {
   return function ( data, type, row ) {
     if ( type === 'display' ) {
+      var c = choices.find((o) => { return o["value"] === data })
+      if (c === undefined) {
+        return data
+      }
       return choices.find((o) => { return o["value"] === data })["label"]
     }
     // Search, order and type can use the original data
@@ -134,15 +135,16 @@ function getMetadataByType (metadata, type) {
 
 $.fn.extend({
   AutoTable: function (config) {
-    const wrapper = $('.auto-table-wrapper')
-    const templateContainer = $('#template-container')
+    const self = this;
+    const templateContainer = $(this).find(".template-container");
 
     const metadata = config.metadata || []
     const choiceFields = getMetadataByType(metadata, "select");
 
     var extraConfig = {}
 
-    var source = $('#template-card').html();
+    var source = $(this).find("script").first().html();
+    // var source = $('#template-card').html();
 
     // if (config.row_template) {
     if (source) {
@@ -152,7 +154,7 @@ $.fn.extend({
           initComplete: function(settings, json) {
             // show new container for data
             templateContainer.insertBefore('#template-container');
-            wrapper.addClass('loaded')
+            $(self).addClass('loaded')
             $.each( config.layout, function( key, value ) {
               $(key).appendTo($(value))
             });
@@ -187,13 +189,20 @@ $.fn.extend({
       console.log(config)
     }
 
-    return $(this).DataTable( {
+    return $(self).find("table").DataTable( {
       ...config.datatables,
+      ajax: {
+        url: "/api/v1/samples/",
+        headers: {
+          "Accept": 'application/datatables+json',
+          "Content-Type": "text/json; charset=utf-8",
+        }
+      },
       columnDefs: [
         ...buildColumnDefs(config),
       ],
       initComplete: function(settings, json) {
-        wrapper.addClass('loaded')
+        $(self).addClass('loaded')
         $.each( config.layout, function( key, value ) {
           $(key).appendTo($(value))
         });

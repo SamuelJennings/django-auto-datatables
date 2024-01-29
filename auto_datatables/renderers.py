@@ -5,6 +5,8 @@ from rest_framework_datatables_editor.renderers import DatatablesRenderer
 
 
 class DatatablesRenderer(DatatablesRenderer):
+    media_type = "application/datatables+json"
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
         """
         Render `data` into JSON, returning a bytestring.

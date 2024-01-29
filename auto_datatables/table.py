@@ -104,8 +104,6 @@ class DataTable:
         }
         if self.row_template:
             template = get_template(self.row_template)
-            # pprint.pprint(dir(template.template))
-            # pprint.pprint(template.template.render(Context()))
             return render_to_string(self.row_template, context=context, request=self.request)
         return ""
 
@@ -196,5 +194,6 @@ class DataTable:
         """Return the metadata for the datatable."""
         if self.url:
             view = import_string(resolve(self.url)._func_path)
-            return view().options(request=self.request).data
+            # return view().options(request=self.request).data
+            return view().options(request=None).data
         return {}

@@ -16,10 +16,10 @@
 </table>
 {% endspaceless %}
 
-{% addtoblock "scripts" %}<script src="{% static "geoluminate/js/datatables.min.js" %}"></script>{% endaddtoblock %}
-{% addtoblock "scripts" %}<script src="{% static "auto_datatables/js/auto-datatables.js" %}"></script>{% endaddtoblock %}
+{% addtoblock "js" %}<script src="{% static "geoluminate/js/datatables.min.js" %}"></script>{% endaddtoblock %}
+{% addtoblock "js" %}<script src="{% static "auto_datatables/js/auto-datatables.js" %}"></script>{% endaddtoblock %}
 
-{% addtoblock "scripts" %}
+{% addtoblock "js" %}
 <script>
   $('#mainIndicator').toggle()
   $(document).ready(function() {
