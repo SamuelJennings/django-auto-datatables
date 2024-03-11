@@ -194,6 +194,6 @@ class DataTable:
         """Return the metadata for the datatable."""
         if self.url:
             view = import_string(resolve(self.url)._func_path)
-            # return view().options(request=self.request).data
-            return view().options(request=None).data
+            return view().options(request=self.request).data
+            # return view().options(request=None).data
         return {}

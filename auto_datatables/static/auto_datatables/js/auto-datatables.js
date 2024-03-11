@@ -134,8 +134,22 @@ function getMetadataByType (metadata, type) {
 }
 
 $.fn.extend({
-  AutoTable: function (config) {
-    const self = this;
+  AutoTable: function (endpoint, config) {
+
+    if (config.debug) {
+      console.log(endpoint)
+      console.log(config)
+    }
+
+    // check is config.datatables.scroller is set and if it is, set the scrollY to the height of the table wrapper minus the height of the table
+    if (config.datatables.scroller) {
+      var height = $(".table-wrapper").height()
+      var table_height = $(this).find("table").height()
+      var scrollerHeight = height - table_height
+
+      config.datatables.scrollY = scrollerHeight + "px"
+    }
+
     const templateContainer = $(this).find(".template-container");
 
     const metadata = config.metadata || []
@@ -154,7 +168,7 @@ $.fn.extend({
           initComplete: function(settings, json) {
             // show new container for data
             templateContainer.insertBefore('#template-container');
-            $(self).addClass('loaded')
+            $(this).addClass('loaded')
             $.each( config.layout, function( key, value ) {
               $(key).appendTo($(value))
             });
@@ -185,24 +199,21 @@ $.fn.extend({
       }
     }
 
-    if (config.debug) {
-      console.log(config)
-    }
-
-    return $(self).find("table").DataTable( {
+    return $(this).find("table").DataTable( {
       ...config.datatables,
       ajax: {
-        url: "/api/v1/samples/",
+        url: endpoint,
         headers: {
           "Accept": 'application/datatables+json',
           "Content-Type": "text/json; charset=utf-8",
-        }
+        },
+        // cache: true,
       },
       columnDefs: [
         ...buildColumnDefs(config),
       ],
       initComplete: function(settings, json) {
-        $(self).addClass('loaded')
+        $(this).addClass('loaded')
         $.each( config.layout, function( key, value ) {
           $(key).appendTo($(value))
         });

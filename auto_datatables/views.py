@@ -1,6 +1,7 @@
 import pprint
 
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.generic.base import ContextMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_auto_endpoint.factories import serializer_factory
@@ -18,12 +19,27 @@ class AutoTableMixin(ContextMixin):
     table = DataTable
     table_overrides = {}
     template_name = "auto_datatables/base.html"
+    table_view_name = ""
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["table"] = self.table(request=self.request, **self.table_overrides)
+        context["table"] = self.get_table()
         context["template"] = self.table.row_template
         return context
+
+    def get_table_class(self):
+        return self.table
+
+    def get_table(self):
+        return self.get_table_class()(request=self.request, **self.get_table_kwargs())
+
+    def get_table_kwargs(self):
+        return {**self.table_overrides, "url": self.get_table_url()}
+
+    def get_table_url(self):
+        if self.table_view_name:
+            return reverse(self.table_view_name)
+        return self.table.url
 
 
 class DataTableBaseView(ListAPIView, AutoTableMixin):

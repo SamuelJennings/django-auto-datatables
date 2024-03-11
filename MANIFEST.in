@@ -1,6 +1,6 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
+include AUTHORS
+include CONTRIBUTING
+include HISTORY
 include LICENSE
-include README.rst
-recursive-include auto-datatables *.html *.png *.gif *js *.css *jpg *jpeg *svg *py
+include README
+recursive-include auto_datatables *.html *.png *.gif *js *.css *jpg *jpeg *svg *py
