@@ -687,6 +687,20 @@ files = [
 djangorestframework = ">=3.14.0"
 
 [[package]]
+name = "djangorestframework-datatables-editor"
+version = "0.3.3"
+description = "Seamless integration between Django REST framework and Datatables (https://datatables.net) with supporting Datatables editor"
+optional = false
+python-versions = "*"
+files = [
+    {file = "djangorestframework-datatables-editor-0.3.3.tar.gz", hash = "sha256:735b66a574694fcf958a58a364fd070c18866c3ac845f96490ac648858415465"},
+    {file = "djangorestframework_datatables_editor-0.3.3-py2.py3-none-any.whl", hash = "sha256:9c688a553e4d0c78324969b695ecd7cfcb8903edd57c2d462f9eb17966daa7e0"},
+]
+
+[package.dependencies]
+djangorestframework = ">=3.9.1"
+
+[[package]]
 name = "djlint"
 version = "1.34.0"
 description = "HTML Template Linter and Formatter"
@@ -2879,4 +2893,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "e67557908ee9ecb3c34b074055039a94f881b13e68b3dba4f32e2d1ac8e8a875"
+content-hash = "2ade5696215b05d93c98eb0dfff3f1b071d32915b58bf514ec050f9d4f2c0c56"
